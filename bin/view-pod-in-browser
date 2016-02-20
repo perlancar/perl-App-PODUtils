@@ -50,6 +50,7 @@ sub view_pod_in_browser {
     return [500, "Can't pod2html: $!"] if $?;
     my $err = Browser::Open::open_browser("file:$html_file");
     return [500, "Can't open browser"] if $err;
+    [200];
 }
 
 Perinci::CmdLine::Any->new(
