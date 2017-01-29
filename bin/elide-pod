@@ -1,0 +1,72 @@
+#!perl
+
+# DATE
+# VERSION
+
+use 5.010001;
+use strict;
+use warnings;
+
+use App::PODUtils;
+use Perinci::CmdLine::Any;
+
+our %SPEC;
+$SPEC{elide_pod} = {
+    v => 1.1,
+    summary => 'Elide POD',
+    description => <<'_',
+
+This utility elides (shortens POD to a target number of lines) by removing POD
+lines with `..`. It will first try to elide text lines first, then POD commands.
+
+_
+    args => {
+        pod_file => {
+            schema => 'str*',
+            default => '-',
+            pos => 0,
+        },
+        lines => {
+            summary => 'Target number of lines (default is one page)',
+            schema => 'posint*',
+        },
+        retain_level => {
+            summary => 'How much to retain POD commands',
+            schema => ['int*', in=>[1..9]],
+            default => 9,
+        },
+    },
+};
+sub elide_pod {
+    require Pod::Elide;
+
+    my %args = @_;
+    my $pod_file = $args{pod_file};
+
+    return [404, "No such file"] unless (-f $pod_file) || $pod_file eq '-';
+    my $pod = do {
+        open my $fh, $pod_file
+            or return [500, "Can't open file '$pod_file': $!"];
+        local $/;
+        scalar <$fh>;
+    };
+
+    return [
+        200, "OK",
+        Pod::Elide::elide(
+            $pod, $args{lines} // $ENV{LINES} // 24,
+            {
+                retain_level => $args{retain_level},
+            }),
+        {'cmdline.skip_format' => 1},
+    ];
+}
+
+Perinci::CmdLine::Any->new(
+    url => '/main/elide_pod',
+)->run;
+
+# ABSTRACT:
+# PODNAME:
+
+=head1 DESCRIPTION
