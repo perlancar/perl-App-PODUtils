@@ -17,7 +17,7 @@ $SPEC{view_pod_in_browser} = {
     args => {
         pod_file => {
             schema => 'str*',
-            req => 1,
+            default => '-',
             pos => 0,
         },
     },
@@ -34,7 +34,7 @@ sub view_pod_in_browser {
     my %args = @_;
     my $pod_file = $args{pod_file};
 
-    return [404, "No such file"] unless -f $pod_file;
+    return [404, "No such file"] unless -f $pod_file || $pod_file eq '-';
 
 
     my $tmp_dir = File::Util::Tempdir::get_tempdir();
