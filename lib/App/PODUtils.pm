@@ -13,4 +13,11 @@ POD:
 
 #INSERT_EXECS_LIST
 
+
+=head1 SEE ALSO
+
+L<pod2html>
+
+L<podtohtml> from L<App::podtohtml>
+
 =cut
