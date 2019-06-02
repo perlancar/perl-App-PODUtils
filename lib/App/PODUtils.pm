@@ -20,4 +20,8 @@ L<pod2html>
 
 L<podtohtml> from L<App::podtohtml>
 
+L<App::PMUtils>
+
+L<App::PlUtils>
+
 =cut
