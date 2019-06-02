@@ -32,7 +32,7 @@ sub podless {
         system "less", $ppath;
         [200, "OK"];
     } else {
-        [404, "Can't find pod $mod"];
+        [404, "Can't find pod $pod"];
     }
 }
 
