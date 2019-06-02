@@ -1,0 +1,50 @@
+#!perl
+
+# DATE
+# VERSION
+
+use 5.010;
+use strict;
+use warnings;
+
+use App::PODUtils;
+use Perinci::CmdLine::Any;
+
+our %SPEC;
+$SPEC{podless} = {
+    v => 1.1,
+    summary => 'Show Perl POD source code with `less`',
+    args => {
+        pod => $App::PODUtils::arg_pod_single,
+    },
+    deps => {
+        prog => 'less',
+    },
+};
+sub podless {
+    require Module::Path::More;
+
+    my %args = @_;
+    my $pod = $args{pod};
+    my $ppath = Module::Path::More::module_path(
+        module => $pod, find_pm=>0, find_pmc=>0, find_pod=>1, find_prefix=>0);
+    if (defined $ppath) {
+        system "less", $ppath;
+        [200, "OK"];
+    } else {
+        [404, "Can't find pod $mod"];
+    }
+}
+
+Perinci::CmdLine::Any->new(
+    url => '/main/podless',
+)->run;
+
+# ABSTRACT:
+# PODNAME:
+
+=head1 SYNOPSIS
+
+Basic usage:
+
+ % podless Some::Pod
