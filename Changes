@@ -1,3 +1,8 @@
+0.043   2019-12-14  Released-By: PERLANCAR; Urgency: medium
+
+	- Add utility: sort-pod-headings.
+
+
 0.042   2019-12-14  Released-By: PERLANCAR; Urgency: medium
 
 	- Add utility: dump-pod-structure (poddump).
