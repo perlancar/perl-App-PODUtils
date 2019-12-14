@@ -10,6 +10,7 @@ use strict;
 use warnings;
 
 use File::Slurper::Dash 'read_text';
+use Sort::Sub;
 
 our %SPEC;
 
@@ -73,6 +74,29 @@ _
     },
 );
 
+sub _parse_pod {
+    require Pod::Elemental;
+
+    my $file = shift;
+
+    my $doc = Pod::Elemental->read_string(read_text($file));
+
+    require Pod::Elemental::Transformer::Pod5;
+    Pod::Elemental::Transformer::Pod5->new->transform_node($doc);
+
+    require Pod::Elemental::Transformer::Nester;
+    require Pod::Elemental::Selectors;
+    my $nester = Pod::Elemental::Transformer::Nester->new({
+        top_selector      => Pod::Elemental::Selectors::s_command('head1'),
+        content_selectors => [
+            Pod::Elemental::Selectors::s_command([ qw(head2 head3 head4) ]),
+            Pod::Elemental::Selectors::s_flat(),
+        ],
+    });
+    $nester->transform_node($doc);
+    $doc;
+}
+
 $SPEC{dump_pod_structure} = {
     v => 1.1,
     summary => 'Dump POD structure using Pod::Elemental',
@@ -102,6 +126,64 @@ sub dump_pod_structure {
         node_actions => ['dump'],
         transforms => ['Pod5', 'Nester'],
     );
+}
+
+sub _sort {
+    my ($node, $command, $sorter) = @_;
+
+    my @children = @{ $node->children // [] };
+    return unless @children;
+
+    # recurse depth-first to sort the children's children
+    for my $child (@children) {
+        next unless $child->can("children");
+        my $grandchildren = $child->children;
+        next unless $grandchildren && @$grandchildren;
+        _sort($child, $command, $sorter);
+    }
+
+    my $has_command_sub = sub {
+        $_->can("command") && $_->command && $_->command eq $command
+    };
+    return unless grep { $has_command_sub->($_) } @children;
+
+    require Sort::SubList;
+    @children = Sort::SubList::sort_sublist(
+        sub { $sorter->($_[0]->content, $_[1]->content) },
+        $has_command_sub,
+        @children);
+
+    $node->children(\@children);
+}
+
+$SPEC{sort_pod_headings} = {
+    v => 1.1,
+    summary => '',
+    args => {
+        %arg0_pod,
+        command => {
+            schema => ['str*', {
+                match=>qr/\A\w+\z/,
+                #in=>[qw/head1 head2 head3 head4/],
+            }],
+            default => 'head1',
+        },
+        %Sort::Sub::argsopt_sortsub,
+    },
+    result_naked => 1,
+};
+sub sort_pod_headings {
+    my %args = @_;
+
+    my $sortsub_routine = $args{sort_sub} // 'asciibetically';
+    my $sortsub_args    = $args{sort_args} // {};
+    my $sorter = Sort::Sub::get_sorter($sortsub_routine, $sortsub_args);
+
+    my $command = $args{command} // 'head1';
+
+    my $doc = _parse_pod($args{pod});
+    _sort($doc, $command, $sorter);
+    $doc->as_pod_string;
 }
 
 1;
