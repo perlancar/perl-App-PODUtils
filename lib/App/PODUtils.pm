@@ -86,7 +86,27 @@ sub _parse_pod {
 
     require Pod::Elemental::Transformer::Nester;
     require Pod::Elemental::Selectors;
-    my $nester = Pod::Elemental::Transformer::Nester->new({
+    my $nester;
+    # TODO: do we have to do nesting in multiple steps like this?
+    $nester = Pod::Elemental::Transformer::Nester->new({
+        top_selector      => Pod::Elemental::Selectors::s_command('head3'),
+        content_selectors => [
+            Pod::Elemental::Selectors::s_command([ qw(head4) ]),
+            Pod::Elemental::Selectors::s_flat(),
+        ],
+    });
+    $nester->transform_node($doc);
+
+    $nester = Pod::Elemental::Transformer::Nester->new({
+        top_selector      => Pod::Elemental::Selectors::s_command('head2'),
+        content_selectors => [
+            Pod::Elemental::Selectors::s_command([ qw(head3 head4) ]),
+            Pod::Elemental::Selectors::s_flat(),
+        ],
+    });
+    $nester->transform_node($doc);
+
+    $nester = Pod::Elemental::Transformer::Nester->new({
         top_selector      => Pod::Elemental::Selectors::s_command('head1'),
         content_selectors => [
             Pod::Elemental::Selectors::s_command([ qw(head2 head3 head4) ]),
@@ -94,6 +114,7 @@ sub _parse_pod {
         ],
     });
     $nester->transform_node($doc);
+
     $doc;
 }
 
