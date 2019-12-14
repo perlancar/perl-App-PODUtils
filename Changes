@@ -1,3 +1,8 @@
+0.044   2019-12-14  Released-By: PERLANCAR; Urgency: medium
+
+	- Tweak/fix nesting with POD::Elemental::Transformer::Pod5.
+
+
 0.043   2019-12-14  Released-By: PERLANCAR; Urgency: medium
 
 	- Add utility: sort-pod-headings.
