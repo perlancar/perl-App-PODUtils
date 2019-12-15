@@ -177,6 +177,9 @@ sub _sort {
     $node->children(\@children);
 }
 
+$Sort::Sub::argsopt_sortsub{sort_sub}{cmdline_aliases} = {S=>{}};
+$Sort::Sub::argsopt_sortsub{sort_args}{cmdline_aliases} = {A=>{}};
+
 $SPEC{sort_pod_headings} = {
     v => 1.1,
     summary => '',
