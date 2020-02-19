@@ -182,7 +182,50 @@ $Sort::Sub::argsopt_sortsub{sort_args}{cmdline_aliases} = {A=>{}};
 
 $SPEC{sort_pod_headings} = {
     v => 1.1,
-    summary => '',
+    summary => 'Sort POD headings in text',
+    description => <<'_',
+
+This utility sorts POD headings in text. By default it sorts =head1 headings.
+For example this POD:
+
+    =head1 b
+
+    some text for b
+
+    =head1 a
+
+    text for a
+
+    =head2 a2
+
+    =head2 a1
+
+    =head1 c
+
+    text for c
+
+will be sorted into:
+
+    =head1 a
+
+    text for a
+
+    =head2 a2
+
+    =head2 a1
+
+    =head1 b
+
+    some text for b
+
+    =head1 c
+
+    text for c
+
+Note that the =head2 headings are not sorted. If you want to sort those, you can
+rerun the utility and specify the `--command=head2` option.
+
+_
     args => {
         %arg0_pod,
         command => {
