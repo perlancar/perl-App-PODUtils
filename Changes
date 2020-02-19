@@ -1,3 +1,10 @@
+0.046   2020-02-19  Released-By: PERLANCAR; Urgency: low
+
+	- No functional changes.
+
+	- [doc] [sort-pod-headings] Add summary (Abstract) and example.
+
+
 0.045   2019-12-15  Released-By: PERLANCAR; Urgency: medium
 
 	- [sort-pod-headings][ux] Add shortcut aliases -S for --sort-sub,
