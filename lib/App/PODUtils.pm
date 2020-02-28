@@ -150,7 +150,7 @@ sub dump_pod_structure {
 }
 
 sub _sort {
-    my ($node, $command, $sorter) = @_;
+    my ($node, $command, $sorter, $sorter_meta) = @_;
 
     my @children = @{ $node->children // [] };
     return unless @children;
@@ -160,21 +160,38 @@ sub _sort {
         next unless $child->can("children");
         my $grandchildren = $child->children;
         next unless $grandchildren && @$grandchildren;
-        _sort($child, $command, $sorter);
+        _sort($child, $command, $sorter, $sorter_meta);
     }
 
     my $has_command_sub = sub {
-        $_->can("command") && $_->command && $_->command eq $command
+        $_->can("command") &&
+            $_->command &&
+            $_->command eq $command
     };
     return unless grep { $has_command_sub->($_) } @children;
 
-    require Sort::SubList;
-    @children = Sort::SubList::sort_sublist(
-        sub { $sorter->($_[0]->content, $_[1]->content) },
-        $has_command_sub,
-        @children);
+    my $child_has_command_sub = sub {
+        $children[$_]->can("command") &&
+            $children[$_]->command &&
+            $children[$_]->command eq $command
+    };
 
-    $node->children(\@children);
+    require Sort::SubList;
+    my @sorted_children =
+        map { $children[$_] }
+        Sort::SubList::sort_sublist(
+            sub {
+                if ($sorter_meta->{compares_record}) {
+                    my $rec0 = [$children[$_[0]]->content, $_[0]];
+                    my $rec1 = [$children[$_[1]]->content, $_[1]];
+                    $sorter->($rec0, $rec1);
+                } else {
+                    $sorter->($children[$_[0]]->content, $children[$_[1]]->content);
+                }
+            },
+            $child_has_command_sub,
+            0..$#children);
+    $node->children(\@sorted_children);
 }
 
 $Sort::Sub::argsopt_sortsub{sort_sub}{cmdline_aliases} = {S=>{}};
@@ -201,12 +218,13 @@ sub sort_pod_headings {
 
     my $sortsub_routine = $args{sort_sub} // 'asciibetically';
     my $sortsub_args    = $args{sort_args} // {};
-    my $sorter = Sort::Sub::get_sorter($sortsub_routine, $sortsub_args);
+    my ($sorter, $sorter_meta) =
+        Sort::Sub::get_sorter($sortsub_routine, $sortsub_args, 'with meta');
 
     my $command = $args{command} // 'head1';
 
     my $doc = _parse_pod($args{pod});
-    _sort($doc, $command, $sorter);
+    _sort($doc, $command, $sorter, $sorter_meta);
     $doc->as_pod_string;
 }
 
