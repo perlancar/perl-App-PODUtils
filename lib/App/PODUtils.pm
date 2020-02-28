@@ -228,6 +228,26 @@ sub sort_pod_headings {
     $doc->as_pod_string;
 }
 
+$SPEC{reverse_pod_headings} = {
+    v => 1.1,
+    summary => '',
+    args => {
+        %arg0_pod,
+        command => {
+            schema => ['str*', {
+                match=>qr/\A\w+\z/,
+                #in=>[qw/head1 head2 head3 head4/],
+            }],
+            default => 'head1',
+        },
+    },
+    result_naked => 1,
+};
+sub reverse_pod_headings {
+    my %args = @_;
+    sort_pod_headings(%args, sort_sub=>'record_by_reverse_order');
+}
+
 1;
 # ABSTRACT: Command-line utilities related to POD
 
