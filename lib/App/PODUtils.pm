@@ -230,7 +230,7 @@ sub sort_pod_headings {
 
 $SPEC{reverse_pod_headings} = {
     v => 1.1,
-    summary => '',
+    summary => 'Reverse POD headings',
     args => {
         %arg0_pod,
         command => {
