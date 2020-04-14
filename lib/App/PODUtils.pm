@@ -8,6 +8,7 @@ package App::PODUtils;
 use 5.010001;
 use strict;
 use warnings;
+use Log::ger;
 
 use File::Slurper::Dash 'read_text';
 use Sort::Sub;
@@ -289,6 +290,46 @@ $SPEC{reverse_pod_headings} = {
 sub reverse_pod_headings {
     my %args = @_;
     sort_pod_headings(%args, sort_sub=>'record_by_reverse_order');
+}
+
+$SPEC{extract_links_in_pod} = {
+    v => 1.1,
+    summary => 'Extract links in POD',
+    args => {
+        %arg0_pod,
+        detail => {
+            schema => 'bool*',
+            cmdline_aliases => {l=>{}},
+        },
+    },
+    result_naked => 1,
+};
+sub extract_links_in_pod {
+    my %args = @_;
+
+    my $pod_parser = App::PODUtils::PodParser::XLinks->new;
+    $pod_parser->{_links} = [];
+    eval {
+        $pod_parser->parse_string_document(read_text $args{pod});
+    };
+    return [500, "Can't parse POD: $@"] if $@;
+
+    unless ($args{detail}) {
+        $pod_parser->{_links} = [map { $_->{raw} } @{ $pod_parser->{_links} }];
+    }
+
+    [200, "OK", $pod_parser->{_links}];
+}
+
+package # hide from PAUSE
+    App::PODUtils::PodParser::XLinks;
+use Log::ger;
+
+use parent qw(Pod::Simple::Methody);
+
+sub start_L {
+    my $self = shift;
+    push @{ $self->{_links} }, $_[0];
 }
 
 1;
