@@ -47,7 +47,7 @@ Perinci::CmdLine::Any->new(
 # ABSTRACT:
 # PODNAME:
 
-=head1 SEE ALSO
+=head1 append:SEE ALSO
 
 L<Pod::Strip>
 
