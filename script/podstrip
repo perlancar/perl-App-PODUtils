@@ -1,0 +1,54 @@
+#!perl
+
+# AUTHORITY
+# DATE
+# DIST
+# VERSION
+
+use 5.010;
+use strict;
+use warnings;
+
+use Perinci::CmdLine::Any;
+
+our %SPEC;
+$SPEC{podstrip} = {
+    v => 1.1,
+    summary => 'Strip POD from Perl source code',
+    args => {
+        doc => {
+            schema => 'str*',
+            cmdline_src => 'stdin_or_file',
+            req => 1,
+            pos => 0,
+        },
+    },
+    links => [
+        {url=>'prog:perlstrip', summary=>'In addition to POD, also strip other stuffs'},
+    ],
+};
+sub podstrip {
+    require Pod::Strip;
+
+    my %args = @_;
+    my $doc = $args{doc};
+    my $out;
+
+    my $strip = Pod::Strip->new;
+    $strip->output_string(\$out);
+    $strip->parse_string_document($doc);
+    [200, "OK", $out, {"cmdline.skip_format"=>1}];
+}
+
+Perinci::CmdLine::Any->new(
+    url => '/main/podstrip',
+)->run;
+
+# ABSTRACT:
+# PODNAME:
+
+=head1 SEE ALSO
+
+L<Pod::Strip>
+
+L<Pod::Stripper>
