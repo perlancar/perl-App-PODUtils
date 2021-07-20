@@ -75,6 +75,20 @@ _
     },
 );
 
+our %argspecopt_naked_pod = (
+    naked_pod => {
+        schema => 'bool*',
+        summary => 'Strip =pod and =cut delimiters',
+        cmdline_aliases => {N=>{}},
+        description => <<'_',
+
+Normally, when outputing POD text, the `=pod` header and `=cut` footer are
+included. This option, if enabled, strips the outputting of such header/footer.
+
+_
+    },
+);
+
 sub _parse_pod {
     require Pod::Elemental;
 
@@ -195,6 +209,16 @@ sub _sort {
     $node->children(\@sorted_children);
 }
 
+sub _doc_as_pod_string {
+    my ($doc, $args) = @_;
+    my $res = $doc->as_pod_string;
+    if ($args->{naked_pod}) {
+        $res =~ s/\A\s*^=pod\s*//ms;
+        $res =~ s/^=cut\s*\z//ms;
+    }
+    $res;
+}
+
 $Sort::Sub::argsopt_sortsub{sort_sub}{cmdline_aliases} = {S=>{}};
 $Sort::Sub::argsopt_sortsub{sort_args}{cmdline_aliases} = {A=>{}};
 
@@ -246,6 +270,7 @@ rerun the utility and specify the `--command=head2` option.
 _
     args => {
         %arg0_pod,
+        %argspecopt_naked_pod,
         command => {
             schema => ['str*', {
                 match=>qr/\A\w+\z/,
@@ -269,7 +294,7 @@ sub sort_pod_headings {
 
     my $doc = _parse_pod($args{pod});
     _sort($doc, $command, $sorter, $sorter_meta);
-    $doc->as_pod_string;
+    _doc_as_pod_string($doc, \%args);
 }
 
 $SPEC{reverse_pod_headings} = {
@@ -277,6 +302,7 @@ $SPEC{reverse_pod_headings} = {
     summary => 'Reverse POD headings',
     args => {
         %arg0_pod,
+        %argspecopt_naked_pod,
         command => {
             schema => ['str*', {
                 match=>qr/\A\w+\z/,
@@ -343,7 +369,7 @@ POD:
 #INSERT_EXECS_LIST
 
 
-=head1 append:SEE ALSO
+=head1 SEE ALSO
 
 L<pod2html>
 
